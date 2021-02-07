@@ -213,7 +213,6 @@ void loop()
   Joystick.setThrottle(analogRead(SPEED_POT));
 
   receiveData();
-  Serial.println("test from arduino");
   Serial.println(data);
   delay(1000);
 }
