@@ -46,10 +46,60 @@ Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_GAMEPAD,
                    false, true,          // No rudder or throttle
                    false, false, false); // No accelerator, brake, or steering
 
+// communication
+const byte DATA_MAX_SIZE = 64;
+char data[DATA_MAX_SIZE]; // an array to store the received data
+
+// https://medium.com/@machadogj/arduino-and-node-js-via-serial-port-bcf9691fab6a
+void receiveData()
+{
+  static char endMarker = '\n'; // message separator
+  char receivedChar;            // read char from serial port
+  int ndx = 0;                  // current index of data buffer
+
+  // clean data buffer
+  memset(data, 0, sizeof(data));
+
+  // read while we have data available and we are
+  // still receiving the same message.
+  while (Serial.available() > 0)
+  {
+    receivedChar = Serial.read();
+
+    if (receivedChar == endMarker)
+    {
+      data[ndx] = '\0'; // end current message
+      return;
+    }
+
+    // looks like a valid message char, so append it and
+    // increment our index
+    data[ndx] = receivedChar;
+    ndx++;
+
+    // if the message is larger than our max size then
+    // stop receiving and clear the data buffer. this will
+    // most likely cause the next part of the message
+    // to be truncated as well, but hopefully when you
+    // parse the message, you'll be able to tell that it's
+    // not a valid message.
+    if (ndx >= DATA_MAX_SIZE)
+    {
+      break;
+    }
+  }
+
+  // no more available bytes to read from serial and we
+  // did not receive the separato. it's an incomplete message!
+  Serial.println("error: incomplete message");
+  Serial.println(data);
+  memset(data, 0, sizeof(data));
+}
+
 void setup()
 {
   //Serial
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   //LCD
   Serial.println("SSD1327 OLED test");
@@ -162,5 +212,8 @@ void loop()
   Joystick.setRyAxis(analogRead(JOY_Y));
   Joystick.setThrottle(analogRead(SPEED_POT));
 
-  delay(5);
+  receiveData();
+  Serial.println("test from arduino");
+  Serial.println(data);
+  delay(1000);
 }

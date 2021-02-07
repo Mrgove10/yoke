@@ -1,0 +1,13 @@
+{
+  "name": "soft",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@serialport/parser-readline": "^9.0.1",
+    "msfs-simconnect-nodejs": "0.0.1",
+    "serialport": "^9.0.6"
+  }
+}
