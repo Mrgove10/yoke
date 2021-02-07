@@ -2,6 +2,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1327.h>
 #include <Joystick.h>
+#include <Encoder.h>
 
 // Axis
 #define PITCH_POT A0
@@ -13,8 +14,8 @@
 #define JOY_SWITCH 15
 
 // Right Switchs
-#define TOP_SWITCH 5
-#define BOT_SWITCH 6
+#define RIGHT_TOP_SWITCH 5
+#define RIGHT_BOT_SWITCH 6
 
 // Center Switchs
 #define GEAR_SWITCH 7
@@ -39,7 +40,7 @@ Adafruit_SSD1327 display(128, 128, &Wire, OLED_RESET, 1000000);
 
 //joystick
 Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_GAMEPAD,
-                   3, 0,                 // Button Count, Hat Switch Count
+                   15, 0,                // Button Count, Hat Switch Count
                    true, true, false,    // X and Y, but no Z Axis
                    true, true, false,    // No Rx, Ry, or Rz
                    false, true,          // No rudder or throttle
@@ -80,8 +81,8 @@ void setup()
   pinMode(JOY_SWITCH, INPUT_PULLUP);
 
   // Right Switchs
-  pinMode(TOP_SWITCH, INPUT_PULLUP);
-  pinMode(BOT_SWITCH, INPUT_PULLUP);
+  pinMode(RIGHT_TOP_SWITCH, INPUT_PULLUP);
+  pinMode(RIGHT_BOT_SWITCH, INPUT_PULLUP);
 
   // Center Switchs
   pinMode(GEAR_SWITCH, INPUT_PULLUP);
@@ -99,23 +100,68 @@ void setup()
 
 void loop()
 {
+  // Buttons
+  Joystick.setButton(0, digitalRead(JOY_SWITCH));
+  Joystick.setButton(1, digitalRead(RIGHT_TOP_SWITCH));
+  Joystick.setButton(2, digitalRead(RIGHT_BOT_SWITCH));
+  Joystick.setButton(3, digitalRead(GEAR_SWITCH));
+  Joystick.setButton(4, digitalRead(BATTERY_SWITCH));
+  Joystick.setButton(5, digitalRead(AUTO_PILOT_SWITCH));
+
+  // Flaps
+  int down = digitalRead(FLAP_DOWN_SWITCH);
+  int up = digitalRead(FLAP_UP_SWITCH);
+
+  if (up == 1 && down == 0)
+  {
+    // Up
+    Joystick.setButton(6, 1);
+    Joystick.setButton(7, 0);
+    Joystick.setButton(8, 0);
+  }
+  else if (up == 0 && down == 0)
+  {
+    // Middle
+    Joystick.setButton(6, 0);
+    Joystick.setButton(7, 1);
+    Joystick.setButton(8, 0);
+  }
+  else if (up == 0 && down == 1)
+  {
+    //Down
+    Joystick.setButton(6, 0);
+    Joystick.setButton(7, 0);
+    Joystick.setButton(8, 1);
+  }
+
+  // Encoder
+  Joystick.setButton(9, digitalRead(ENCODER_SWITCH));
+  Joystick.setButton(10, 0);
+  Joystick.setButton(11, 0);
   long newPosition = myEnc.read();
   if (newPosition != oldPosition)
   {
+    if (newPosition > oldPosition)
+    {
+      // clockwise
+      Joystick.setButton(10, 1);
+    }
+    if (newPosition < oldPosition)
+    {
+      // counter cloclwise
+
+      Joystick.setButton(11, 1);
+    }
     oldPosition = newPosition;
     Serial.println(newPosition);
   }
 
-  for (size_t i = 0; i < 1024; i++)
-  {
-    Joystick.setXAxis(i);
-    Joystick.setYAxis(i);
-    Joystick.setRxAxis(i);
-    Joystick.setRyAxis(i);
-    Joystick.setThrottle(i);
-  }
+  // Pots
+  Joystick.setXAxis(analogRead(PITCH_POT));
+  Joystick.setYAxis(analogRead(ROLL_POT));
+  Joystick.setRxAxis(analogRead(JOY_X));
+  Joystick.setRyAxis(analogRead(JOY_Y));
+  Joystick.setThrottle(analogRead(SPEED_POT));
 
-  Joystick.setButton(0, 0);
-  delay(500);
-  Joystick.setButton(0, 1);
+  delay(5);
 }
