@@ -40,7 +40,7 @@ Adafruit_SSD1327 display(128, 128, &Wire, OLED_RESET, 1000000);
 
 //joystick
 Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_GAMEPAD,
-                   15, 0,                // Button Count, Hat Switch Count
+                   12, 0,                // Button Count, Hat Switch Count
                    true, true, false,    // X and Y, but no Z Axis
                    true, true, false,    // No Rx, Ry, or Rz
                    false, true,          // No rudder or throttle
@@ -101,12 +101,12 @@ void setup()
 void loop()
 {
   // Buttons
-  Joystick.setButton(0, digitalRead(JOY_SWITCH));
-  Joystick.setButton(1, digitalRead(RIGHT_TOP_SWITCH));
-  Joystick.setButton(2, digitalRead(RIGHT_BOT_SWITCH));
-  Joystick.setButton(3, digitalRead(GEAR_SWITCH));
-  Joystick.setButton(4, digitalRead(BATTERY_SWITCH));
-  Joystick.setButton(5, digitalRead(AUTO_PILOT_SWITCH));
+  Joystick.setButton(1, digitalRead(JOY_SWITCH));
+  Joystick.setButton(2, digitalRead(RIGHT_TOP_SWITCH));
+  Joystick.setButton(3, digitalRead(RIGHT_BOT_SWITCH));
+  Joystick.setButton(4, digitalRead(GEAR_SWITCH));
+  Joystick.setButton(5, digitalRead(BATTERY_SWITCH));
+  Joystick.setButton(6, digitalRead(AUTO_PILOT_SWITCH));
 
   // Flaps
   int down = digitalRead(FLAP_DOWN_SWITCH);
@@ -115,42 +115,41 @@ void loop()
   if (up == 1 && down == 0)
   {
     // Up
-    Joystick.setButton(6, 1);
-    Joystick.setButton(7, 0);
+    Joystick.setButton(7, 1);
     Joystick.setButton(8, 0);
+    Joystick.setButton(9, 0);
   }
   else if (up == 0 && down == 0)
   {
     // Middle
-    Joystick.setButton(6, 0);
-    Joystick.setButton(7, 1);
-    Joystick.setButton(8, 0);
+    Joystick.setButton(7, 0);
+    Joystick.setButton(8, 1);
+    Joystick.setButton(9, 0);
   }
   else if (up == 0 && down == 1)
   {
     //Down
-    Joystick.setButton(6, 0);
     Joystick.setButton(7, 0);
-    Joystick.setButton(8, 1);
+    Joystick.setButton(8, 0);
+    Joystick.setButton(9, 1);
   }
 
   // Encoder
-  Joystick.setButton(9, digitalRead(ENCODER_SWITCH));
-  Joystick.setButton(10, 0);
+  Joystick.setButton(10, digitalRead(ENCODER_SWITCH));
   Joystick.setButton(11, 0);
+  Joystick.setButton(12, 0);
   long newPosition = myEnc.read();
   if (newPosition != oldPosition)
   {
     if (newPosition > oldPosition)
     {
       // clockwise
-      Joystick.setButton(10, 1);
+      Joystick.setButton(11, 1);
     }
     if (newPosition < oldPosition)
     {
       // counter cloclwise
-
-      Joystick.setButton(11, 1);
+      Joystick.setButton(12, 1);
     }
     oldPosition = newPosition;
     Serial.println(newPosition);
