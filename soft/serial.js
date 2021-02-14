@@ -2,7 +2,7 @@ const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 const simConnect = require('msfs-simconnect-nodejs');
 
-const port = new SerialPort('COM8', { baudRate: 9600 });
+const port = new SerialPort('COM8', { baudRate: 115200 });
 const parser = port.pipe(new Readline({ delimiter: '\n' }));// Read the port data
 
 port.on("open", () => {
@@ -14,7 +14,7 @@ parser.on('data', data => {
 });
 
 setInterval(() => {
-    port.write('a:123456\n', (err) => {
+    port.write('d1515;98;959.85;1894512;378.748;135489;164821.5451;\n', (err) => {
         if (err) {
             return console.log('Error on write: ', err.message);
         }
@@ -37,8 +37,7 @@ var success = simConnect.open("MyAppName",
         //errorCallback
         console.log("Undexpected disconnect/error: " + error); // Look up error code in ntstatus.h for details
     });
-console.log(success);
-
+/*
 simConnect.requestDataOnSimObject(
     //reqData
     [
@@ -59,7 +58,7 @@ simConnect.requestDataOnSimObject(
         );
 
     },
-    simConnect.objectId.USER,               // User aircraft 
+    simConnect.objectId.USER,               // User aircraft
     simConnect.period.SECOND,            // Get data every sim frame...
     simConnect.dataRequestFlag.CHANGED      // ...but only if one of the variables have changed
-);
+);*/
