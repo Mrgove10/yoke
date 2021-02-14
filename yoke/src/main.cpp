@@ -49,6 +49,7 @@ Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_GAMEPAD,
 // communication
 const byte DATA_MAX_SIZE = 64;
 char data[DATA_MAX_SIZE]; // an array to store the received data
+int seconds = 0;
 
 // https://medium.com/@machadogj/arduino-and-node-js-via-serial-port-bcf9691fab6a
 void receiveData()
@@ -96,10 +97,28 @@ void receiveData()
   memset(data, 0, sizeof(data));
 }
 
+void parseData()
+{
+  switch (data[0])
+  {
+  case 'd':
+    Serial.println("got data");
+    Serial.println(data);
+    break;
+
+  case '!':
+    Serial.println("got command");
+
+    break;
+  default:
+    break;
+  }
+}
+
 void setup()
 {
   //Serial
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   //LCD
   Serial.println("SSD1327 OLED test");
@@ -208,11 +227,20 @@ void loop()
   // Pots
   Joystick.setXAxis(analogRead(PITCH_POT));
   Joystick.setYAxis(analogRead(ROLL_POT));
-  Joystick.setRxAxis(analogRead(JOY_X));
-  Joystick.setRyAxis(analogRead(JOY_Y));
-  Joystick.setThrottle(analogRead(SPEED_POT));
+  Joystick.setRxAxis(0);//analogRead(JOY_X));
+  Joystick.setRyAxis(0);//analogRead(JOY_Y));
+  Joystick.setThrottle(0);//analogRead(SPEED_POT));
 
-  receiveData();
-  Serial.println(data);
-  delay(1000);
+  seconds += 5;
+  if (seconds == 1000)
+  {
+    int start = micros();
+    receiveData();
+    parseData();
+    seconds = 0;
+    int end = micros();
+    Serial.println(end - start);
+  }
+
+  delay(5);
 }
