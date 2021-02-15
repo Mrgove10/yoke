@@ -3,6 +3,7 @@
 #include <Adafruit_SSD1327.h>
 #include <Joystick.h>
 #include <Encoder.h>
+#include <ArduinoJson.h>
 
 // Axis
 #define PITCH_POT A0
@@ -31,14 +32,14 @@
 Encoder myEnc(ENCODER_CLOCK, ENCODER_COUNTER_CLOCK);
 long oldPosition = -999;
 
-//Lcd
-//https://learn.adafruit.com/adafruit-grayscale-1-5-128x128-oled-display?view=all
-//https://github.com/adafruit/Adafruit_SSD1327/blob/master/examples/ssd1327_test/ssd1327_test.ino
+// Lcd
+// https://learn.adafruit.com/adafruit-grayscale-1-5-128x128-oled-display?view=all
+// https://github.com/adafruit/Adafruit_SSD1327/blob/master/examples/ssd1327_test/ssd1327_test.ino
 #define LCD_ADDRESS 0x78
 #define OLED_RESET -1
 Adafruit_SSD1327 display(128, 128, &Wire, OLED_RESET, 1000000);
 
-//joystick
+// joystick
 Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_GAMEPAD,
                    12, 0,                // Button Count, Hat Switch Count
                    true, true, false,    // X and Y, but no Z Axis
@@ -46,17 +47,26 @@ Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_GAMEPAD,
                    false, true,          // No rudder or throttle
                    false, false, false); // No accelerator, brake, or steering
 
-// communication
-const byte DATA_MAX_SIZE = 64;
+// Communication
+const byte DATA_MAX_SIZE = 128;
 char data[DATA_MAX_SIZE]; // an array to store the received data
+DynamicJsonDocument doc(DATA_MAX_SIZE);
+
 int seconds = 0;
 
 // https://medium.com/@machadogj/arduino-and-node-js-via-serial-port-bcf9691fab6a
+void parseData()
+{
+  deserializeJson(doc, data);
+  const char *id = doc[0];
+  Serial.println(id);
+}
+
 void receiveData()
 {
   static char endMarker = '\n'; // message separator
   char receivedChar;            // read char from serial port
-  int ndx = 0;                  // current index of data buffer
+  int index = 0;                // current index of data buffer
 
   // clean data buffer
   memset(data, 0, sizeof(data));
@@ -69,50 +79,32 @@ void receiveData()
 
     if (receivedChar == endMarker)
     {
-      data[ndx] = '\0'; // end current message
+      data[index] = '\0'; // end current message
+
+      parseData();
       return;
     }
-
-    // looks like a valid message char, so append it and
-    // increment our index
-    data[ndx] = receivedChar;
-    ndx++;
+    else
+    {
+      // looks like a valid message char, so append it and
+      // increment our index
+      data[index] = receivedChar;
+      index++;
+    }
 
     // if the message is larger than our max size then
-    // stop receiving and clear the data buffer. this will
-    // most likely cause the next part of the message
-    // to be truncated as well, but hopefully when you
-    // parse the message, you'll be able to tell that it's
-    // not a valid message.
-    if (ndx >= DATA_MAX_SIZE)
+    // stop receiving and clear the data buffer.
+    if (index >= DATA_MAX_SIZE)
     {
       break;
     }
   }
 
   // no more available bytes to read from serial and we
-  // did not receive the separato. it's an incomplete message!
-  Serial.println("error: incomplete message");
-  Serial.println(data);
+  // did not receive the separator. it's an incomplete message!
+  Serial.println("KO");
+  //Serial.println("error: incomplete message");
   memset(data, 0, sizeof(data));
-}
-
-void parseData()
-{
-  switch (data[0])
-  {
-  case 'd':
-    Serial.println("got data");
-    Serial.println(data);
-    break;
-
-  case '!':
-    Serial.println("got command");
-
-    break;
-  default:
-    break;
-  }
 }
 
 void setup()
@@ -227,19 +219,14 @@ void loop()
   // Pots
   Joystick.setXAxis(analogRead(PITCH_POT));
   Joystick.setYAxis(analogRead(ROLL_POT));
-  Joystick.setRxAxis(0);//analogRead(JOY_X));
-  Joystick.setRyAxis(0);//analogRead(JOY_Y));
-  Joystick.setThrottle(0);//analogRead(SPEED_POT));
+  Joystick.setRxAxis(0);   //analogRead(JOY_X));
+  Joystick.setRyAxis(0);   //analogRead(JOY_Y));
+  Joystick.setThrottle(0); //analogRead(SPEED_POT));
 
-  seconds += 5;
-  if (seconds == 1000)
+  // Communication
+  while (Serial.available() > 0)
   {
-    int start = micros();
     receiveData();
-    parseData();
-    seconds = 0;
-    int end = micros();
-    Serial.println(end - start);
   }
 
   delay(5);
