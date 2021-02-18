@@ -55,6 +55,10 @@ DynamicJsonDocument doc(DATA_MAX_SIZE);
 int seconds = 0;
 
 // https://medium.com/@machadogj/arduino-and-node-js-via-serial-port-bcf9691fab6a
+/**
+ * parse the incomming data
+ * This data is in json format
+ */
 void parseData()
 {
   deserializeJson(doc, data);
@@ -62,6 +66,9 @@ void parseData()
   Serial.println(id);
 }
 
+/**
+ * Receive Data comming from the computer serial connection
+ */
 void receiveData()
 {
   static char endMarker = '\n'; // message separator
@@ -107,6 +114,24 @@ void receiveData()
   memset(data, 0, sizeof(data));
 }
 
+/**
+ * Initilise the display
+ */
+void initializeDisplay()
+{
+  if (!display.begin(0x3D))
+  {
+    Serial.println("Unable to initialize OLED");
+    while (1)
+      yield();
+  }
+  display.clearDisplay();
+  display.display();
+}
+
+/**
+ * Setup function
+ */
 void setup()
 {
   //Serial
@@ -114,15 +139,8 @@ void setup()
 
   //LCD
   Serial.println("SSD1327 OLED test");
-  /*if (!display.begin(LCD_ADDRESS))
-  {
-    Serial.println("Unable to initialize OLED");
-    while (1)
-      yield();
-  }*/
-  display.clearDisplay();
-  //display.display();
-
+  initializeDisplay();
+ 
   // Joystick
   Joystick.begin();
   Joystick.setXAxisRange(0, 1024);
@@ -159,6 +177,9 @@ void setup()
   pinMode(ENCODER_SWITCH, INPUT_PULLUP);
 }
 
+/**
+ * Goes on and on and on
+ */
 void loop()
 {
   // Buttons
