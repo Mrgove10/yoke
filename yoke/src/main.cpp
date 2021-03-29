@@ -177,7 +177,6 @@ void loop()
   Joystick.setButton(0, !digitalRead(JOY_SWITCH));       // OK
   Joystick.setButton(1, !digitalRead(RIGHT_TOP_SWITCH)); // OK
   Joystick.setButton(2, !digitalRead(RIGHT_BOT_SWITCH)); // OK
-                                                         // OK
   Joystick.setButton(4, !digitalRead(BATTERY_SWITCH));   // OK
   Joystick.setButton(5, digitalRead(AUTO_PILOT_SWITCH)); // OK
 
